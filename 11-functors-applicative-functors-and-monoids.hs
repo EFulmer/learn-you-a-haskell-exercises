@@ -5,14 +5,26 @@ import Data.Monoid
 data List a = Empty | Value a (List a) deriving (Show)
 
 -- Make the list a Functor
+instance Functor List where
+    fmap g Empty = Empty
+    fmap g (Value a next) = Value (g a) (fmap g next)
 
 -- Write a function which appends one list on to another
 combineLists:: List a -> List a -> List a
-combineLists a b = undefined
+combineLists (Value v rest) l2 = Value v (combineLists rest l2)
+combineLists Empty l2 = l2
 
 -- Make our list a Monoid
+instance Monoid (List a) where
+    mempty = Empty
+    mappend = combineLists
 
 -- Make our list an Applicative
+instance Applicative List where
+    pure = flip Value Empty
+    Empty <*> _ = Empty
+    _ <*> Empty = Empty
+    (Value v1 rest1) <*> l2 = (fmap v1 l2) `combineLists` (rest1 <*> l2)
 
 -- Make sure that the List obeys the laws for Applicative and Monoid
 
